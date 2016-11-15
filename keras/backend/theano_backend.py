@@ -14,6 +14,7 @@ except ImportError:
     from theano.sandbox.softsign import softsign as T_softsign
 import inspect
 import numpy as np
+import warnings
 from .common import _FLOATX, _EPSILON, image_dim_ordering
 py_all = all
 
@@ -806,8 +807,14 @@ class Function(object):
                                         on_unused_input='ignore',
                                         **kwargs)
 
-    def __call__(self, inputs):
+    def __call__(self, inputs, **kwargs):
         assert type(inputs) in {list, tuple}
+        if len(kwargs) > 0:
+            msg = [
+                'Expected no kwargs, you passed %s' % len(kwargs),
+                'kwargs passed to F() are ignored with Theano backend'
+            ]
+            warnings.warn('\n'.join(msg))
         return self.function(*inputs)
 
 
