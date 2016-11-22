@@ -68,6 +68,14 @@ class CallbackList(object):
                           'to the batch update (%f). Check your callbacks.'
                           % delta_t_median)
 
+    def on_val_begin(self, epoch, logs={}):
+        for callback in self.callbacks:
+            callback.on_val_begin(epoch, logs)
+
+    def on_val_end(self, epoch, logs={}):
+        for callback in self.callbacks:
+            callback.on_val_end(epoch, logs)
+
     def on_train_begin(self, logs={}):
         for callback in self.callbacks:
             callback.on_train_begin(logs)
@@ -124,6 +132,12 @@ class Callback(object):
     def on_batch_end(self, batch, logs={}):
         pass
 
+    def on_val_begin(self, epoch, logs={}):
+        pass
+
+    def on_val_end(self, epoch, logs={}):
+        pass
+
     def on_train_begin(self, logs={}):
         pass
 
@@ -172,6 +186,9 @@ class ProgbarLogger(Callback):
             self.progbar = Progbar(target=self.params['nb_sample'],
                                    verbose=self.verbose)
         self.seen = 0
+        self.epoch_t = None
+        self.batch_t = None
+        self.val_t = None
 
     def on_batch_begin(self, batch, logs={}):
         if self.seen < self.params['nb_sample']:
@@ -190,10 +207,26 @@ class ProgbarLogger(Callback):
         if self.verbose and self.seen < self.params['nb_sample']:
             self.progbar.update(self.seen, self.log_values)
 
+    def on_val_begin(self, epoch, logs={}):
+        self.epoch_t = self.progbar.elapsed_time()
+        self.batch_t = self.epoch_t / self.params['nb_sample']
+        self.val_start_t = time.time()
+
+    def on_val_end(self, epoch, logs={}):
+        self.val_t = time.time() - self.val_start_t
+
     def on_epoch_end(self, epoch, logs={}):
         for k in self.params['metrics']:
             if k in logs:
                 self.log_values.append((k, logs[k]))
+        if not self.epoch_t:
+            self.epoch_t = self.progbar.elapsed_time()
+            self.batch_t = self.epoch_t / self.params['nb_sample']
+        # add timings
+        self.log_values.append(('epoch_t', self.epoch_t))
+        self.log_values.append(('batch_t', self.batch_t))
+        if self.val_t:
+            self.log_values.append(('val_t', self.val_t))
         if self.verbose:
             self.progbar.update(self.seen, self.log_values, force=True)
 
