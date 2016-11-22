@@ -868,6 +868,7 @@ class Model(Container):
                 if batch_index == len(batches) - 1:  # last batch
                     # validation
                     if do_validation:
+                        callbacks.on_val_begin(epoch)
                         # replace with self._evaluate
                         val_outs = self._test_loop(val_f, val_ins,
                                                    batch_size=batch_size,
@@ -877,6 +878,7 @@ class Model(Container):
                         # same labels assumed
                         for l, o in zip(out_labels, val_outs):
                             epoch_logs['val_' + l] = o
+                        callbacks.on_val_end(epoch, epoch_logs)
             callbacks.on_epoch_end(epoch, epoch_logs)
             if callback_model.stop_training:
                 break
@@ -1518,6 +1520,7 @@ class Model(Container):
                                   'Set `samples_per_epoch` correctly '
                                   'to avoid this warning.')
                 if samples_seen >= samples_per_epoch and do_validation:
+                    callbacks.on_val_begin(epoch)
                     if val_gen:
                         val_outs = self.evaluate_generator(validation_data,
                                                            nb_val_samples,
@@ -1536,6 +1539,7 @@ class Model(Container):
                     # same labels assumed
                     for l, o in zip(out_labels, val_outs):
                         epoch_logs['val_' + l] = o
+                    callbacks.on_val_end(epoch, epoch_logs)
 
             callbacks.on_epoch_end(epoch, epoch_logs)
             epoch += 1
