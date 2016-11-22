@@ -506,7 +506,10 @@ class NumpyArrayIterator(Iterator):
                 img.save(os.path.join(self.save_to_dir, fname))
         if self.y is None:
             return batch_x
-        batch_y = self.y[index_array]
+        #batch_y = self.y[index_array]
+        batch_y = np.zeros((current_batch_size,), dtype=self.y.dtype)
+        for i, j in enumerate(index_array):
+            batch_y[i] = self.y[j]
         return batch_x, batch_y
 
 
