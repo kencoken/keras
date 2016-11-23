@@ -495,7 +495,9 @@ class NumpyArrayIterator(Iterator):
             x = self.X[j]
             x = self.image_data_generator.random_transform(x.astype('float32'))
             x = self.image_data_generator.standardize(x)
-            batch_x[i] = x
+            x_shape = x.shape[:2]
+            batch_x[i, :x_shape[0], :x_shape[1]] = x
+        batch_x = batch_x[:, :x_shape[0], :x_shape[1]]
         if self.save_to_dir:
             for i in range(current_batch_size):
                 img = array_to_img(batch_x[i], self.dim_ordering, scale=True)
