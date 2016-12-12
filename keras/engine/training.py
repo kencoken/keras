@@ -1380,13 +1380,18 @@ class Model(Container):
                                 samples_per_epoch=10000, nb_epoch=10)
         ```
         '''
+        print('in fit_generator...')
         wait_time = 0.01  # in seconds
         epoch = initial_epoch
 
         do_validation = bool(validation_data)
+        print('make train function...')
         self._make_train_function()
+        print('DONE')
         if do_validation:
+            print('make test function...')
             self._make_test_function()
+            print('DONE')
 
         # python 2 has 'next', 3 has '__next__'
         # avoid any explicit version checks
