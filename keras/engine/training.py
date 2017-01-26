@@ -490,7 +490,7 @@ class GeneratorEnqueuer(object):
 class Model(Container):
 
     def compile(self, optimizer, loss, metrics=None, loss_weights=None,
-                sample_weight_mode=None, **kwargs):
+                sample_weight_mode=None, execute_kwargs=None, **kwargs):
         """Configures the model for training.
 
         # Arguments
@@ -512,6 +512,9 @@ class Model(Container):
                 If the model has multiple outputs, you can use a different
                 `sample_weight_mode` on each output by passing a
                 dictionary or a list of modes.
+            execute_kwargs: when using the Tensorflow backend, these arguments
+                are passed into calls to sess.run(func, feed_dict, **execute_args).
+                Ignored for Theano backend.
             kwargs: when using the Theano backend, these arguments
                 are passed into K.function. Ignored for Tensorflow backend.
         """
@@ -729,6 +732,11 @@ class Model(Container):
         self.total_loss = total_loss
         self.sample_weights = sample_weights
 
+        # these arguments will be passed into calls to sess.run()
+        # for the TensorFlow backend when executing the functions
+        # for train, test and predict
+        self._function_execute_args = execute_kwargs or {}
+
         # functions for train, test and predict will
         # be compiled lazily when required.
         # This saves time when the user is not using all functions.
@@ -891,7 +899,7 @@ class Model(Container):
                 batch_logs['batch'] = batch_index
                 batch_logs['size'] = len(batch_ids)
                 callbacks.on_batch_begin(batch_index, batch_logs)
-                outs = f(ins_batch)
+                outs = f(ins_batch, **self._function_execute_args)
                 if not isinstance(outs, list):
                     outs = [outs]
                 for l, o in zip(out_labels, outs):
@@ -947,7 +955,7 @@ class Model(Container):
             else:
                 ins_batch = slice_X(ins, batch_ids)
 
-            batch_outs = f(ins_batch)
+            batch_outs = f(ins_batch, **self._function_execute_args)
             if not isinstance(batch_outs, list):
                 batch_outs = [batch_outs]
             if batch_index == 0:
@@ -992,7 +1000,7 @@ class Model(Container):
             else:
                 ins_batch = slice_X(ins, batch_ids)
 
-            batch_outs = f(ins_batch)
+            batch_outs = f(ins_batch, **self._function_execute_args)
             if isinstance(batch_outs, list):
                 if batch_index == 0:
                     for batch_out in enumerate(batch_outs):
@@ -1322,7 +1330,7 @@ class Model(Container):
         else:
             ins = x + y + sample_weights
         self._make_train_function()
-        outputs = self.train_function(ins)
+        outputs = self.train_function(ins, **self._function_execute_args)
         if len(outputs) == 1:
             return outputs[0]
         return outputs
@@ -1364,7 +1372,7 @@ class Model(Container):
         else:
             ins = x + y + sample_weights
         self._make_test_function()
-        outputs = self.test_function(ins)
+        outputs = self.test_function(ins, **self._function_execute_args)
         if len(outputs) == 1:
             return outputs[0]
         return outputs
@@ -1379,7 +1387,7 @@ class Model(Container):
         else:
             ins = x
         self._make_predict_function()
-        outputs = self.predict_function(ins)
+        outputs = self.predict_function(ins, **self._function_execute_args)
         if len(outputs) == 1:
             return outputs[0]
         return outputs

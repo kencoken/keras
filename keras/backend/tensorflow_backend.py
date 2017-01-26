@@ -1905,9 +1905,11 @@ class Function(object):
                     updates_ops.append(update)
             self.updates_op = tf.group(*updates_ops)
 
-    def __call__(self, inputs):
+    def __call__(self, inputs, **kwargs):
         if not isinstance(inputs, (list, tuple)):
             raise TypeError('`inputs` should be a list or tuple.')
+        unrecognized_kwargs = set(kwargs.keys()) - {'options', 'run_metadata'}
+        assert len(unrecognized_kwargs) == 0, 'Unrecognised kwargs: {}'.format(unrecognized_kwargs)
         feed_dict = {}
         for tensor, value in zip(self.inputs, inputs):
             if is_sparse(tensor):
@@ -1918,7 +1920,7 @@ class Function(object):
             feed_dict[tensor] = value
         session = get_session()
         updated = session.run(self.outputs + [self.updates_op],
-                              feed_dict=feed_dict)
+                              feed_dict=feed_dict, **kwargs)
         return updated[:len(self.outputs)]
 
 
