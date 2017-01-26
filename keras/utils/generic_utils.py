@@ -301,3 +301,7 @@ class Progbar(object):
 
     def add(self, n, values=None):
         self.update(self.seen_so_far + n, values)
+
+    def elapsed_time(self):
+        return time.time() - self.start
+
