@@ -581,7 +581,16 @@ class TensorBoard(Callback):
         self.model = model
         self.sess = K.get_session()
         if self.histogram_freq and self.merged is None:
-            for layer in self.model.layers:
+            def get_layers_flattened(model_layers):
+                layers = []
+                for layer in model_layers:
+                    if layer.__class__.__name__ == 'Model':
+                        layers.extend(get_layers_flattened(layer.layers))
+                    else:
+                        layers.append(layer)
+                return layers
+            layers = get_layers_flattened(self.model.layers)
+            for layer in layers:
 
                 for weight in layer.weights:
                     if hasattr(tf, 'histogram_summary'):
@@ -606,13 +615,17 @@ class TensorBoard(Callback):
                         else:
                             tf.summary.image(weight.name, w_img)
 
-                if hasattr(layer, 'output'):
-                    if hasattr(tf, 'histogram_summary'):
-                        tf.histogram_summary('{}_out'.format(layer.name),
-                                             layer.output)
-                    else:
-                        tf.summary.histogram('{}_out'.format(layer.name),
-                                             layer.output)
+                if layer in self.model.layers:
+                    try:
+                        if hasattr(layer, 'output'):
+                            if hasattr(tf, 'histogram_summary'):
+                                tf.histogram_summary('{}_out'.format(layer.name),
+                                                     layer.output)
+                            else:
+                                tf.summary.histogram('{}_out'.format(layer.name),
+                                                     layer.output)
+                    except AttributeError:
+                        pass
 
         if hasattr(tf, 'merge_all_summaries'):
             self.merged = tf.merge_all_summaries()
