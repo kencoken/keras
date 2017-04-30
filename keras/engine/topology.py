@@ -252,6 +252,7 @@ class Layer(object):
         weights: The concatenation of the lists trainable_weights and
             non_trainable_weights (in this order).
         constraints: Dict mapping weights to constraints.
+        multipliers: dict mapping weights to learning rates multipliers.
 
     # Methods
         call(x, mask=None): Where the layer's logic lives.
@@ -310,6 +311,8 @@ class Layer(object):
             self.losses = []
         if not hasattr(self, 'constraints'):
             self.constraints = {}  # dict {tensor: constraint instance}
+        if not hasattr(self, 'multipliers'):
+            self.multipliers = {}  # dict {tensor: multiplier value}
         self.built = False
 
         # These properties should be set by the user via keyword arguments.
@@ -403,7 +406,8 @@ class Layer(object):
     def add_weight(self, shape, initializer, name=None,
                    trainable=True,
                    regularizer=None,
-                   constraint=None):
+                   constraint=None,
+                   multiplier=None):
         """Adds a weight variable to the layer.
 
         # Arguments
@@ -420,6 +424,8 @@ class Layer(object):
             self.add_loss(regularizer(weight))
         if constraint is not None:
             self.constraints[weight] = constraint
+        if multiplier is not None:
+            self.multipliers[weight] = multiplier
         if trainable:
             self._trainable_weights.append(weight)
         else:
@@ -1068,6 +1074,7 @@ class InputLayer(Layer):
         self.inbound_nodes = []
         self.outbound_nodes = []
         self.constraints = {}
+        self.multipliers = {}
         self.sparse = sparse
 
         if not name:
@@ -1275,6 +1282,7 @@ class Merge(Layer):
         self.inbound_nodes = []
         self.outbound_nodes = []
         self.constraints = {}
+        self.multipliers = {}
         self._trainable_weights = []
         self._non_trainable_weights = []
         self.supports_masking = True
@@ -1715,6 +1723,7 @@ class Container(Layer):
         trainable_weights (list of variables)
         non_trainable_weights (list of variables)
         constraints (list of tuples (weight, constraint))
+        multipliers (list of tuples (weight, learning_rate_multiplier))
 
     # Methods
         summary
@@ -2031,6 +2040,7 @@ class Container(Layer):
         self.supports_masking = False
         # The following are implemented as property functions:
         # self.constraints
+        # self.multipliers
         # self.trainable_weights
         # self.non_trainable_weights
         # self.input_spec
@@ -2140,6 +2150,17 @@ class Container(Layer):
                                      'for one weight tensor: ' + str(key))
                 cons[key] = value
         return cons
+
+    @property
+    def multipliers(self):
+        mults = {}
+        for layer in self.layers:
+            for key, value in layer.multipliers.items():
+                if key in mults:
+                    raise Exception('Received multiple learning rate multipliers '
+                                    'for one weight tensor: ' + str(key))
+                mults[key] = value
+        return mults
 
     @property
     def regularizers(self):
