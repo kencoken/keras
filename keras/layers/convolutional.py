@@ -121,8 +121,6 @@ class Convolution1D(Layer):
         self.W_constraint = constraints.get(W_constraint)
         self.b_constraint = constraints.get(b_constraint)
 
-        if not bias and b_learning_rate_multiplier is not None:
-            raise ValueError('b_learning_rate_multiplier provided with no bias.')
         self.W_learning_rate_multiplier = W_learning_rate_multiplier
         self.b_learning_rate_multiplier = b_learning_rate_multiplier
 
@@ -439,8 +437,6 @@ class Convolution2D(Layer):
         self.W_constraint = constraints.get(W_constraint)
         self.b_constraint = constraints.get(b_constraint)
 
-        if not bias and b_learning_rate_multiplier is not None:
-            raise ValueError('b_learning_rate_multiplier provided with no bias.')
         self.W_learning_rate_multiplier = W_learning_rate_multiplier
         self.b_learning_rate_multiplier = b_learning_rate_multiplier
 
@@ -1023,8 +1019,6 @@ class SeparableConvolution2D(Layer):
         self.pointwise_constraint = constraints.get(pointwise_constraint)
         self.b_constraint = constraints.get(b_constraint)
 
-        if not bias and b_learning_rate_multiplier is not None:
-            raise ValueError('b_learning_rate_multiplier provided with no bias.')
         self.depthwise_learning_rate_multiplier = depthwise_learning_rate_multiplier
         self.pointwise_learning_rate_multiplier = pointwise_learning_rate_multiplier
         self.b_learning_rate_multiplier = b_learning_rate_multiplier
@@ -1235,8 +1229,6 @@ class Convolution3D(Layer):
         self.W_constraint = constraints.get(W_constraint)
         self.b_constraint = constraints.get(b_constraint)
 
-        if not bias and b_learning_rate_multiplier is not None:
-            raise ValueError('b_learning_rate_multiplier provided with no bias.')
         self.W_learning_rate_multiplier = W_learning_rate_multiplier
         self.b_learning_rate_multiplier = b_learning_rate_multiplier
 

@@ -781,8 +781,6 @@ class Dense(Layer):
         self.W_constraint = constraints.get(W_constraint)
         self.b_constraint = constraints.get(b_constraint)
 
-        if not bias and b_learning_rate_multiplier is not None:
-            raise ValueError('b_learning_rate_multiplier provided with no bias.')
         self.W_learning_rate_multiplier = W_learning_rate_multiplier
         self.b_learning_rate_multiplier = b_learning_rate_multiplier
 
@@ -963,8 +961,6 @@ class MaxoutDense(Layer):
         self.W_constraint = constraints.get(W_constraint)
         self.b_constraint = constraints.get(b_constraint)
 
-        if not bias and b_learning_rate_multiplier is not None:
-            raise ValueError('b_learning_rate_multiplier provided with no bias.')
         self.W_learning_rate_multiplier = W_learning_rate_multiplier
         self.b_learning_rate_multiplier = b_learning_rate_multiplier
 
@@ -1109,8 +1105,6 @@ class Highway(Layer):
         self.W_constraint = constraints.get(W_constraint)
         self.b_constraint = constraints.get(b_constraint)
 
-        if not bias and b_learning_rate_multiplier is not None:
-            raise ValueError('b_learning_rate_multiplier provided with no bias.')
         self.W_learning_rate_multiplier = W_learning_rate_multiplier
         self.b_learning_rate_multiplier = b_learning_rate_multiplier
 
@@ -1267,8 +1261,6 @@ class TimeDistributedDense(Layer):
         self.W_constraint = constraints.get(W_constraint)
         self.b_constraint = constraints.get(b_constraint)
 
-        if not bias and b_learning_rate_multiplier is not None:
-            raise ValueError('b_learning_rate_multiplier provided with no bias.')
         self.W_learning_rate_multiplier = W_learning_rate_multiplier
         self.b_learning_rate_multiplier = b_learning_rate_multiplier
 
