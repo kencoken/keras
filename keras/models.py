@@ -4,6 +4,7 @@ import copy
 import json
 import os
 import numpy as np
+import inspect
 
 from . import backend as K
 from . import optimizers
@@ -11,6 +12,19 @@ from .utils.io_utils import ask_to_proceed_with_overwrite
 from .engine.training import Model
 from .engine.topology import get_source_inputs, Node, Layer, Merge
 from .optimizers import optimizer_from_config
+
+
+def model_mappings(class_name):
+
+    model_map = {
+        'Model': Model,
+        'Container': Model,
+        'Sequential': Sequential,
+        'OrdinalModel': Model,
+        'ExtendedModel': Model
+    }
+
+    return model_map.get(class_name, None)
 
 
 def save_model(model, filepath, overwrite=True):
@@ -106,7 +120,12 @@ def save_model(model, filepath, overwrite=True):
     f.close()
 
 
-def load_model(filepath, custom_objects=None):
+def load_model(filepath, classify=True, custom_objects=None):
+    """
+    :param filepath: Path to the model.h5 file
+    :param custom_objects: Custom layers necessary to build the model
+    :return: Object of Keras Model class or custom model class.
+    """
     if not custom_objects:
         custom_objects = {}
 
@@ -144,13 +163,11 @@ def load_model(filepath, custom_objects=None):
     # set weights
     model.load_weights_from_hdf5_group(f['model_weights'])
 
-    # instantiate optimizer
-    training_config = f.attrs.get('training_config')
-    if training_config is None:
-        warnings.warn('No training configuration found in save file: '
-                      'the model was *not* compiled. Compile it manually.')
+    if classify:
         f.close()
         return model
+
+    training_config = f.attrs.get('training_config')
     training_config = json.loads(training_config.decode('utf-8'))
     optimizer_config = training_config['optimizer_config']
     optimizer = optimizer_from_config(optimizer_config,
@@ -185,12 +202,39 @@ def load_model(filepath, custom_objects=None):
 
 
 def model_from_config(config, custom_objects=None):
-    from keras.utils.layer_utils import layer_from_config
+    """Instantiate a layer from a config dictionary.
+
+    # Arguments
+        config: dict of the form {'class_name': str, 'config': dict}
+        custom_objects: dict mapping class names (or function names)
+            of custom (non-Keras) objects to class/functions
+
+    # Returns
+        Layer instance (may be Model, Sequential, Layer...)
+    """
     if isinstance(config, list):
         raise TypeError('`model_fom_config` expects a dictionary, not a list. '
                         'Maybe you meant to use '
                         '`Sequential.from_config(config)`?')
-    return layer_from_config(config, custom_objects=custom_objects)
+    # Insert custom layers into globals so they can
+    # be accessed by `get_from_module`.
+    if custom_objects:
+        for cls_key in custom_objects:
+            globals()[cls_key] = custom_objects[cls_key]
+
+    class_name = config['class_name']
+
+    if model_mappings(class_name):
+        layer_class = model_mappings(class_name)
+    else:
+        raise Exception('Unable to find %s in model_mappings' % class_name)
+
+    arg_spec = inspect.getfullargspec(layer_class.from_config)
+    if 'custom_objects' in arg_spec.args:
+        return layer_class.from_config(config['config'],
+                                       custom_objects=custom_objects)
+    else:
+        return layer_class.from_config(config['config'])
 
 
 def model_from_yaml(yaml_string, custom_objects=None):
