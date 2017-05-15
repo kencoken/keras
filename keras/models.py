@@ -107,7 +107,7 @@ def save_model(model, filepath, overwrite=True):
     f.close()
 
 
-def load_model(filepath, custom_objects=None, layer_class=None):
+def load_model(filepath, custom_objects=None):
     if not custom_objects:
         custom_objects = {}
 
@@ -140,7 +140,7 @@ def load_model(filepath, custom_objects=None, layer_class=None):
     if model_config is None:
         raise ValueError('No model found in config file.')
     model_config = json.loads(model_config.decode('utf-8'))
-    model = model_from_config(model_config, custom_objects=custom_objects, layer_class=layer_class)
+    model = model_from_config(model_config, custom_objects=custom_objects)
 
     # set weights
     model.load_weights_from_hdf5_group(f['model_weights'])
@@ -185,16 +185,16 @@ def load_model(filepath, custom_objects=None, layer_class=None):
     return model
 
 
-def model_from_config(config, custom_objects=None, layer_class=None):
+def model_from_config(config, custom_objects=None):
     if isinstance(config, list):
         raise TypeError('`model_fom_config` expects a dictionary, not a list. '
                         'Maybe you meant to use '
                         '`Sequential.from_config(config)`?')
-    if layer_class:
+    if custom_objects and 'layer_class' in custom_objects:
         # Insert custom layers into globals so they can be accessed by `get_from_module`.
-        if custom_objects:
-            for cls_key in custom_objects:
-                globals()[cls_key] = custom_objects[cls_key]
+        for cls_key in custom_objects:
+            globals()[cls_key] = custom_objects[cls_key]
+        layer_class = custom_objects['layer_class']
         arg_spec = inspect.getfullargspec(layer_class.from_config)
         return layer_class.from_config(config['config'], custom_objects=getattr(arg_spec.args, 'custom_objects', None))
     # Default Keras behaviour if the layer class parameter is not passed
