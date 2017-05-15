@@ -120,7 +120,7 @@ def save_model(model, filepath, overwrite=True):
     f.close()
 
 
-def load_model(filepath, classify=True, custom_objects=None):
+def load_model(filepath, custom_objects=None):
 
     if not custom_objects:
         custom_objects = {}
@@ -159,7 +159,11 @@ def load_model(filepath, classify=True, custom_objects=None):
     # set weights
     model.load_weights_from_hdf5_group(f['model_weights'])
 
-    if classify:
+    # instantiate optimizer
+    training_config = f.attrs.get('training_config')
+    if training_config is None:
+        warnings.warn('No training configuration found in save file: '
+                      'the model was *not* compiled. Compile it manually.')
         f.close()
         return model
 
