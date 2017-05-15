@@ -191,11 +191,11 @@ def model_from_config(config, custom_objects=None, layer_class=None):
         raise TypeError('`model_fom_config` expects a dictionary, not a list. '
                         'Maybe you meant to use '
                         '`Sequential.from_config(config)`?')
-    # Insert custom layers into globals so they can be accessed by `get_from_module`.
-    if custom_objects:
-        for cls_key in custom_objects:
-            globals()[cls_key] = custom_objects[cls_key]
     if layer_class:
+        # Insert custom layers into globals so they can be accessed by `get_from_module`.
+        if custom_objects:
+            for cls_key in custom_objects:
+                globals()[cls_key] = custom_objects[cls_key]
         arg_spec = inspect.getfullargspec(layer_class.from_config)
         return layer_class.from_config(config['config'], custom_objects=getattr(arg_spec.args, 'custom_objects', None))
     else:
