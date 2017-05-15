@@ -12,7 +12,6 @@ from .utils.io_utils import ask_to_proceed_with_overwrite
 from .engine.training import Model
 from .engine.topology import get_source_inputs, Node, Layer, Merge
 from .optimizers import optimizer_from_config
-from keras.utils.layer_utils import layer_from_config
 
 
 def save_model(model, filepath, overwrite=True):
@@ -198,6 +197,7 @@ def model_from_config(config, custom_objects=None, layer_class=None):
                 globals()[cls_key] = custom_objects[cls_key]
         arg_spec = inspect.getfullargspec(layer_class.from_config)
         return layer_class.from_config(config['config'], custom_objects=getattr(arg_spec.args, 'custom_objects', None))
+    # Default Keras behaviour if the layer class parameter is not passed
     else:
         from keras.utils.layer_utils import layer_from_config
         return layer_from_config(config, custom_objects=custom_objects)
