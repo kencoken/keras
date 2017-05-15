@@ -12,6 +12,7 @@ from .utils.io_utils import ask_to_proceed_with_overwrite
 from .engine.training import Model
 from .engine.topology import get_source_inputs, Node, Layer, Merge
 from .optimizers import optimizer_from_config
+from keras.utils.layer_utils import layer_from_config
 
 
 def save_model(model, filepath, overwrite=True):
@@ -107,7 +108,7 @@ def save_model(model, filepath, overwrite=True):
     f.close()
 
 
-def load_model(filepath, custom_objects=None, layer_class=Model):
+def load_model(filepath, custom_objects=None, layer_class=None):
     if not custom_objects:
         custom_objects = {}
 
@@ -185,7 +186,7 @@ def load_model(filepath, custom_objects=None, layer_class=Model):
     return model
 
 
-def model_from_config(config, custom_objects=None, layer_class=Model):
+def model_from_config(config, custom_objects=None, layer_class=None):
     if isinstance(config, list):
         raise TypeError('`model_fom_config` expects a dictionary, not a list. '
                         'Maybe you meant to use '
@@ -194,8 +195,12 @@ def model_from_config(config, custom_objects=None, layer_class=Model):
     if custom_objects:
         for cls_key in custom_objects:
             globals()[cls_key] = custom_objects[cls_key]
-    arg_spec = inspect.getfullargspec(layer_class.from_config)
-    return layer_class.from_config(config['config'], custom_objects=getattr(arg_spec.args, 'custom_objects', None))
+    if layer_class:
+        arg_spec = inspect.getfullargspec(layer_class.from_config)
+        return layer_class.from_config(config['config'], custom_objects=getattr(arg_spec.args, 'custom_objects', None))
+    else:
+        from keras.utils.layer_utils import layer_from_config
+        return layer_from_config(config, custom_objects=custom_objects)
 
 
 def model_from_yaml(yaml_string, custom_objects=None):
