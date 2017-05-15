@@ -14,19 +14,6 @@ from .engine.topology import get_source_inputs, Node, Layer, Merge
 from .optimizers import optimizer_from_config
 
 
-def model_mappings(class_name):
-
-    model_map = {
-        'Model': Model,
-        'Container': Model,
-        'Sequential': Sequential,
-        'OrdinalModel': Model,
-        'ExtendedModel': Model
-    }
-
-    return model_map.get(class_name, None)
-
-
 def save_model(model, filepath, overwrite=True):
 
     def get_json_type(obj):
@@ -165,7 +152,6 @@ def load_model(filepath, custom_objects=None):
                       'the model was *not* compiled. Compile it manually.')
         f.close()
         return model
-
     training_config = json.loads(training_config.decode('utf-8'))
     optimizer_config = training_config['optimizer_config']
     optimizer = optimizer_from_config(optimizer_config,
@@ -199,8 +185,7 @@ def load_model(filepath, custom_objects=None):
     return model
 
 
-def model_from_config(config, custom_objects=None):
-
+def model_from_config(config, custom_objects=None, layer_class=Model):
     if isinstance(config, list):
         raise TypeError('`model_fom_config` expects a dictionary, not a list. '
                         'Maybe you meant to use '
@@ -211,19 +196,8 @@ def model_from_config(config, custom_objects=None):
         for cls_key in custom_objects:
             globals()[cls_key] = custom_objects[cls_key]
 
-    class_name = config['class_name']
-
-    if model_mappings(class_name):
-        layer_class = model_mappings(class_name)
-    else:
-        raise Exception('Unable to find %s in model_mappings' % class_name)
-
     arg_spec = inspect.getfullargspec(layer_class.from_config)
-    if 'custom_objects' in arg_spec.args:
-        return layer_class.from_config(config['config'],
-                                       custom_objects=custom_objects)
-    else:
-        return layer_class.from_config(config['config'])
+    return layer_class.from_config(config['config'], custom_objects=getattr(arg_spec.args, 'custom_objects', None))
 
 
 def model_from_yaml(yaml_string, custom_objects=None):
