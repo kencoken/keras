@@ -121,7 +121,6 @@ def save_model(model, filepath, overwrite=True):
 
 
 def load_model(filepath, custom_objects=None):
-
     if not custom_objects:
         custom_objects = {}
 
@@ -167,7 +166,6 @@ def load_model(filepath, custom_objects=None):
         f.close()
         return model
 
-    training_config = f.attrs.get('training_config')
     training_config = json.loads(training_config.decode('utf-8'))
     optimizer_config = training_config['optimizer_config']
     optimizer = optimizer_from_config(optimizer_config,
