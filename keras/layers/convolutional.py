@@ -72,6 +72,10 @@ class Convolution1D(Layer):
             (eg. maxnorm, nonneg), applied to the main weights matrix.
         b_constraint: instance of the [constraints](../constraints.md) module,
             applied to the bias.
+        W_learning_rate_multiplier: Multiplier (between 0.0 and 1.0) applied to the
+            learning rate of the main weights matrix.
+        b_learning_rate_multiplier: Multiplier (between 0.0 and 1.0) applied to the
+            learning rate of the bias.
         bias: whether to include a bias
             (i.e. make the layer affine rather than linear).
         input_dim: Number of channels/dimensions in the input.
@@ -96,6 +100,7 @@ class Convolution1D(Layer):
                  W_regularizer=None, b_regularizer=None,
                  activity_regularizer=None,
                  W_constraint=None, b_constraint=None,
+                 W_learning_rate_multiplier=None, b_learning_rate_multiplier=None,
                  bias=True, input_dim=None, input_length=None, **kwargs):
 
         if border_mode not in {'valid', 'same', 'full'}:
@@ -116,6 +121,9 @@ class Convolution1D(Layer):
         self.W_constraint = constraints.get(W_constraint)
         self.b_constraint = constraints.get(b_constraint)
 
+        self.W_learning_rate_multiplier = W_learning_rate_multiplier
+        self.b_learning_rate_multiplier = b_learning_rate_multiplier
+
         self.bias = bias
         self.input_spec = [InputSpec(ndim=3)]
         self.initial_weights = weights
@@ -134,13 +142,15 @@ class Convolution1D(Layer):
                                                                dim_ordering='th'),
                                  name='{}_W'.format(self.name),
                                  regularizer=self.W_regularizer,
-                                 constraint=self.W_constraint)
+                                 constraint=self.W_constraint,
+                                 multiplier=self.W_learning_rate_multiplier)
         if self.bias:
             self.b = self.add_weight((self.nb_filter,),
                                      initializer='zero',
                                      name='{}_b'.format(self.name),
                                      regularizer=self.b_regularizer,
-                                     constraint=self.b_constraint)
+                                     constraint=self.b_constraint,
+                                     multiplier=self.b_learning_rate_multiplier)
         else:
             self.b = None
 
@@ -179,6 +189,8 @@ class Convolution1D(Layer):
                   'activity_regularizer': self.activity_regularizer.get_config() if self.activity_regularizer else None,
                   'W_constraint': self.W_constraint.get_config() if self.W_constraint else None,
                   'b_constraint': self.b_constraint.get_config() if self.b_constraint else None,
+                  'W_learning_rate_multiplier': self.W_learning_rate_multiplier,
+                  'b_learning_rate_multiplier': self.b_learning_rate_multiplier,
                   'bias': self.bias,
                   'input_dim': self.input_dim,
                   'input_length': self.input_length}
@@ -244,6 +256,10 @@ class AtrousConvolution1D(Convolution1D):
             (eg. maxnorm, nonneg), applied to the main weights matrix.
         b_constraint: instance of the [constraints](../constraints.md) module,
             applied to the bias.
+        W_learning_rate_multiplier: Multiplier (between 0.0 and 1.0) applied to the
+            learning rate of the main weights matrix.
+        b_learning_rate_multiplier: Multiplier (between 0.0 and 1.0) applied to the
+            learning rate of the bias.
         bias: whether to include a bias
             (i.e. make the layer affine rather than linear).
         input_dim: Number of channels/dimensions in the input.
@@ -268,6 +284,7 @@ class AtrousConvolution1D(Convolution1D):
                  W_regularizer=None, b_regularizer=None,
                  activity_regularizer=None,
                  W_constraint=None, b_constraint=None,
+                 W_learning_rate_multiplier=None, b_learning_rate_multiplier=None,
                  bias=True, **kwargs):
 
         if border_mode not in {'valid', 'same', 'full'}:
@@ -283,6 +300,7 @@ class AtrousConvolution1D(Convolution1D):
             W_regularizer=W_regularizer, b_regularizer=b_regularizer,
             activity_regularizer=activity_regularizer,
             W_constraint=W_constraint, b_constraint=b_constraint,
+            W_learning_rate_multiplier=W_learning_rate_multiplier, b_learning_rate_multiplier=b_learning_rate_multiplier,
             bias=bias, **kwargs)
 
     def get_output_shape_for(self, input_shape):
@@ -363,6 +381,10 @@ class Convolution2D(Layer):
             (eg. maxnorm, nonneg), applied to the main weights matrix.
         b_constraint: instance of the [constraints](../constraints.md) module,
             applied to the bias.
+        W_learning_rate_multiplier: Multiplier (between 0.0 and 1.0) applied to the
+            learning rate of the main weights matrix.
+        b_learning_rate_multiplier: Multiplier (between 0.0 and 1.0) applied to the
+            learning rate of the bias.
         dim_ordering: 'th' or 'tf'. In 'th' mode, the channels dimension
             (the depth) is at index 1, in 'tf' mode is it at index 3.
             It defaults to the `image_dim_ordering` value found in your
@@ -391,6 +413,7 @@ class Convolution2D(Layer):
                  W_regularizer=None, b_regularizer=None,
                  activity_regularizer=None,
                  W_constraint=None, b_constraint=None,
+                 W_learning_rate_multiplier=None, b_learning_rate_multiplier=None,
                  bias=True, **kwargs):
         if dim_ordering == 'default':
             dim_ordering = K.image_dim_ordering()
@@ -414,6 +437,9 @@ class Convolution2D(Layer):
         self.W_constraint = constraints.get(W_constraint)
         self.b_constraint = constraints.get(b_constraint)
 
+        self.W_learning_rate_multiplier = W_learning_rate_multiplier
+        self.b_learning_rate_multiplier = b_learning_rate_multiplier
+
         self.bias = bias
         self.input_spec = [InputSpec(ndim=4)]
         self.initial_weights = weights
@@ -433,13 +459,15 @@ class Convolution2D(Layer):
                                                                dim_ordering=self.dim_ordering),
                                  name='{}_W'.format(self.name),
                                  regularizer=self.W_regularizer,
-                                 constraint=self.W_constraint)
+                                 constraint=self.W_constraint,
+                                 multiplier=self.W_learning_rate_multiplier)
         if self.bias:
             self.b = self.add_weight((self.nb_filter,),
                                      initializer='zero',
                                      name='{}_b'.format(self.name),
                                      regularizer=self.b_regularizer,
-                                     constraint=self.b_constraint)
+                                     constraint=self.b_constraint,
+                                     multiplier=self.b_learning_rate_multiplier)
         else:
             self.b = None
 
@@ -497,6 +525,8 @@ class Convolution2D(Layer):
                   'activity_regularizer': self.activity_regularizer.get_config() if self.activity_regularizer else None,
                   'W_constraint': self.W_constraint.get_config() if self.W_constraint else None,
                   'b_constraint': self.b_constraint.get_config() if self.b_constraint else None,
+                  'W_learning_rate_multiplier': self.W_learning_rate_multiplier,
+                  'b_learning_rate_multiplier': self.b_learning_rate_multiplier,
                   'bias': self.bias}
         base_config = super(Convolution2D, self).get_config()
         return dict(list(base_config.items()) + list(config.items()))
@@ -595,6 +625,10 @@ class Deconvolution2D(Convolution2D):
             (eg. maxnorm, nonneg), applied to the main weights matrix.
         b_constraint: instance of the [constraints](../constraints.md) module,
             applied to the bias.
+        W_learning_rate_multiplier: Multiplier (between 0.0 and 1.0) applied to the
+            learning rate of the main weights matrix.
+        b_learning_rate_multiplier: Multiplier (between 0.0 and 1.0) applied to the
+            learning rate of the bias.
         dim_ordering: 'th' or 'tf'. In 'th' mode, the channels dimension
             (the depth) is at index 1, in 'tf' mode is it at index 3.
             It defaults to the `image_dim_ordering` value found in your
@@ -628,6 +662,7 @@ class Deconvolution2D(Convolution2D):
                  dim_ordering='default',
                  W_regularizer=None, b_regularizer=None, activity_regularizer=None,
                  W_constraint=None, b_constraint=None,
+                 W_learning_rate_multiplier=None, b_learning_rate_multiplier=None,
                  bias=True, **kwargs):
         if dim_ordering == 'default':
             dim_ordering = K.image_dim_ordering()
@@ -648,6 +683,8 @@ class Deconvolution2D(Convolution2D):
                                               activity_regularizer=activity_regularizer,
                                               W_constraint=W_constraint,
                                               b_constraint=b_constraint,
+                                              W_learning_rate_multiplier=W_learning_rate_multiplier,
+                                              b_learning_rate_multiplier=b_learning_rate_multiplier,
                                               bias=bias,
                                               **kwargs)
 
@@ -742,6 +779,10 @@ class AtrousConvolution2D(Convolution2D):
             (eg. maxnorm, nonneg), applied to the main weights matrix.
         b_constraint: instance of the [constraints](../constraints.md) module,
             applied to the bias.
+        W_learning_rate_multiplier: Multiplier (between 0.0 and 1.0) applied to the
+            learning rate of the main weights matrix.
+        b_learning_rate_multiplier: Multiplier (between 0.0 and 1.0) applied to the
+            learning rate of the bias.
         dim_ordering: 'th' or 'tf'. In 'th' mode, the channels dimension
             (the depth) is at index 1, in 'tf' mode is it at index 3.
             It defaults to the `image_dim_ordering` value found in your
@@ -774,6 +815,7 @@ class AtrousConvolution2D(Convolution2D):
                  W_regularizer=None, b_regularizer=None,
                  activity_regularizer=None,
                  W_constraint=None, b_constraint=None,
+                 W_learning_rate_multiplier=None, b_learning_rate_multiplier=None,
                  bias=True, **kwargs):
         if dim_ordering == 'default':
             dim_ordering = K.image_dim_ordering()
@@ -795,6 +837,8 @@ class AtrousConvolution2D(Convolution2D):
                                                   activity_regularizer=activity_regularizer,
                                                   W_constraint=W_constraint,
                                                   b_constraint=b_constraint,
+                                                  W_learning_rate_multiplier=W_learning_rate_multiplier,
+                                                  b_learning_rate_multiplier=b_learning_rate_multiplier,
                                                   bias=bias,
                                                   **kwargs)
 
@@ -900,6 +944,12 @@ class SeparableConvolution2D(Layer):
             (eg. maxnorm, nonneg), applied to the pointwise weights matrix.
         b_constraint: instance of the [constraints](../constraints.md) module,
             applied to the bias.
+        depthwise_learning_rate_multiplier: Multiplier (between 0.0 and 1.0) applied to the
+            learning rate of the depthwise weights matrix.
+        pointwise_learning_rate_multiplier: Multiplier (between 0.0 and 1.0) applied to the
+            learning rate of the pointwise weights matrix.
+        b_learning_rate_multiplier: Multiplier (between 0.0 and 1.0) applied to the
+            learning rate of the bias.
         dim_ordering: 'th' or 'tf'. In 'th' mode, the channels dimension
             (the depth) is at index 1, in 'tf' mode is it at index 3.
             It defaults to the `image_dim_ordering` value found in your
@@ -930,6 +980,8 @@ class SeparableConvolution2D(Layer):
                  b_regularizer=None, activity_regularizer=None,
                  depthwise_constraint=None, pointwise_constraint=None,
                  b_constraint=None,
+                 depthwise_learning_rate_multiplier=None, pointwise_learning_rate_multiplier=None,
+                 b_learning_rate_multiplier=None,
                  bias=True, **kwargs):
 
         if K.backend() != 'tensorflow':
@@ -967,6 +1019,10 @@ class SeparableConvolution2D(Layer):
         self.pointwise_constraint = constraints.get(pointwise_constraint)
         self.b_constraint = constraints.get(b_constraint)
 
+        self.depthwise_learning_rate_multiplier = depthwise_learning_rate_multiplier
+        self.pointwise_learning_rate_multiplier = pointwise_learning_rate_multiplier
+        self.b_learning_rate_multiplier = b_learning_rate_multiplier
+
         self.bias = bias
         self.input_spec = [InputSpec(ndim=4)]
         self.initial_weights = weights
@@ -989,19 +1045,22 @@ class SeparableConvolution2D(Layer):
                                                                               dim_ordering=self.dim_ordering),
                                                 regularizer=self.depthwise_regularizer,
                                                 constraint=self.depthwise_constraint,
+                                                multiplier=self.depthwise_learning_rate_multiplier,
                                                 name='{}_depthwise_kernel'.format(self.name))
         self.pointwise_kernel = self.add_weight(pointwise_shape,
                                                 initializer=functools.partial(self.init,
                                                                               dim_ordering=self.dim_ordering),
                                                 regularizer=self.pointwise_regularizer,
                                                 constraint=self.pointwise_constraint,
+                                                multiplier=self.pointwise_learning_rate_multiplier,
                                                 name='{}_pointwise_kernel'.format(self.name))
         if self.bias:
             self.b = self.add_weight((self.nb_filter,),
                                      initializer='zero',
                                      name='{}_b'.format(self.name),
                                      regularizer=self.b_regularizer,
-                                     constraint=self.b_constraint)
+                                     constraint=self.b_constraint,
+                                     multiplier=self.b_learning_rate_multiplier)
         else:
             self.b = None
 
@@ -1065,6 +1124,9 @@ class SeparableConvolution2D(Layer):
                   'depthwise_constraint': self.depthwise_constraint.get_config() if self.depthwise_constraint else None,
                   'pointwise_constraint': self.pointwise_constraint.get_config() if self.pointwise_constraint else None,
                   'b_constraint': self.b_constraint.get_config() if self.b_constraint else None,
+                  'depthwise_learning_rate_multiplier': self.depthwise_learning_rate_multiplier,
+                  'pointwise_learning_rate_multiplier': self.pointwise_learning_rate_multiplier,
+                  'b_learning_rate_multiplier': self.b_learning_rate_multiplier,
                   'bias': self.bias}
         base_config = super(SeparableConvolution2D, self).get_config()
         return dict(list(base_config.items()) + list(config.items()))
@@ -1110,6 +1172,10 @@ class Convolution3D(Layer):
             (eg. maxnorm, nonneg), applied to the main weights matrix.
         b_constraint: instance of the [constraints](../constraints.md) module,
             applied to the bias.
+        W_learning_rate_multiplier: Multiplier (between 0.0 and 1.0) applied to the
+            learning rate of the main weights matrix.
+        b_learning_rate_multiplier: Multiplier (between 0.0 and 1.0) applied to the
+            learning rate of the bias.
         dim_ordering: 'th' or 'tf'. In 'th' mode, the channels dimension
             (the depth) is at index 1, in 'tf' mode is it at index 4.
             It defaults to the `image_dim_ordering` value found in your
@@ -1137,6 +1203,7 @@ class Convolution3D(Layer):
                  border_mode='valid', subsample=(1, 1, 1), dim_ordering='default',
                  W_regularizer=None, b_regularizer=None, activity_regularizer=None,
                  W_constraint=None, b_constraint=None,
+                 W_learning_rate_multiplier=None, b_learning_rate_multiplier=None,
                  bias=True, **kwargs):
         if dim_ordering == 'default':
             dim_ordering = K.image_dim_ordering()
@@ -1162,6 +1229,9 @@ class Convolution3D(Layer):
         self.W_constraint = constraints.get(W_constraint)
         self.b_constraint = constraints.get(b_constraint)
 
+        self.W_learning_rate_multiplier = W_learning_rate_multiplier
+        self.b_learning_rate_multiplier = b_learning_rate_multiplier
+
         self.bias = bias
         self.input_spec = [InputSpec(ndim=5)]
         self.initial_weights = weights
@@ -1186,13 +1256,15 @@ class Convolution3D(Layer):
                                                                dim_ordering=self.dim_ordering),
                                  name='{}_W'.format(self.name),
                                  regularizer=self.W_regularizer,
-                                 constraint=self.W_constraint)
+                                 constraint=self.W_constraint,
+                                 multiplier=self.W_learning_rate_multiplier)
         if self.bias:
             self.b = self.add_weight((self.nb_filter,),
                                      initializer='zero',
                                      name='{}_b'.format(self.name),
                                      regularizer=self.b_regularizer,
-                                     constraint=self.b_constraint)
+                                     constraint=self.b_constraint,
+                                     multiplier=self.b_learning_rate_multiplier)
         else:
             self.b = None
 
@@ -1257,6 +1329,8 @@ class Convolution3D(Layer):
                   'activity_regularizer': self.activity_regularizer.get_config() if self.activity_regularizer else None,
                   'W_constraint': self.W_constraint.get_config() if self.W_constraint else None,
                   'b_constraint': self.b_constraint.get_config() if self.b_constraint else None,
+                  'W_learning_rate_multiplier': self.W_learning_rate_multiplier,
+                  'b_learning_rate_multiplier': self.b_learning_rate_multiplier,
                   'bias': self.bias}
         base_config = super(Convolution3D, self).get_config()
         return dict(list(base_config.items()) + list(config.items()))

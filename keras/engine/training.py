@@ -765,7 +765,7 @@ class Model(Container):
                 inputs = self.inputs + self.targets + self.sample_weights
 
             training_updates = self.optimizer.get_updates(self._collected_trainable_weights,
-                                                          self.constraints,
+                                                          self.multipliers, self.constraints,
                                                           self.total_loss)
             updates = self.updates + training_updates
 
@@ -954,7 +954,8 @@ class Model(Container):
             else:
                 ins_batch = slice_X(ins, batch_ids)
 
-            batch_outs = f(ins_batch, **self._function_execute_args)
+            execute_kwargs = getattr(self, '_function_execute_args', {})
+            batch_outs = f(ins_batch, **execute_kwargs)
             if not isinstance(batch_outs, list):
                 batch_outs = [batch_outs]
             if batch_index == 0:
