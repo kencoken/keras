@@ -121,11 +121,7 @@ def save_model(model, filepath, overwrite=True):
 
 
 def load_model(filepath, classify=True, custom_objects=None):
-    """
-    :param filepath: Path to the model.h5 file
-    :param custom_objects: Custom layers necessary to build the model
-    :return: Object of Keras Model class or custom model class.
-    """
+
     if not custom_objects:
         custom_objects = {}
 
@@ -202,16 +198,7 @@ def load_model(filepath, classify=True, custom_objects=None):
 
 
 def model_from_config(config, custom_objects=None):
-    """Instantiate a layer from a config dictionary.
 
-    # Arguments
-        config: dict of the form {'class_name': str, 'config': dict}
-        custom_objects: dict mapping class names (or function names)
-            of custom (non-Keras) objects to class/functions
-
-    # Returns
-        Layer instance (may be Model, Sequential, Layer...)
-    """
     if isinstance(config, list):
         raise TypeError('`model_fom_config` expects a dictionary, not a list. '
                         'Maybe you meant to use '
