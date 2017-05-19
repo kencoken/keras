@@ -4,7 +4,6 @@ import copy
 import json
 import os
 import numpy as np
-import inspect
 
 from . import backend as K
 from . import optimizers
