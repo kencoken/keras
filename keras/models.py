@@ -185,12 +185,11 @@ def load_model(filepath, custom_objects=None):
 
 
 def model_from_config(config, custom_objects=None):
+    from keras.utils.layer_utils import layer_from_config
     if isinstance(config, list):
         raise TypeError('`model_fom_config` expects a dictionary, not a list. '
                         'Maybe you meant to use '
                         '`Sequential.from_config(config)`?')
-
-    from keras.utils.layer_utils import layer_from_config
     return layer_from_config(config, custom_objects=custom_objects)
 
 
