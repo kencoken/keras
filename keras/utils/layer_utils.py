@@ -24,6 +24,15 @@ def layer_from_config(config, custom_objects=None):
     if custom_objects:
         get_custom_objects().update(custom_objects)
 
+    # New behaviour
+    if custom_objects and 'layer_class' in custom_objects:
+        layer_class = custom_objects['layer_class']
+        # Remove layer class from custom_objects as it's not needed anymore
+        custom_objects.pop('layer_class', None)
+        for cls_key in custom_objects:
+            globals()[cls_key] = custom_objects[cls_key]
+        return layer_class.from_config(config['config'], custom_objects=custom_objects)
+
     class_name = config['class_name']
 
     if class_name == 'Sequential':

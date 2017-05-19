@@ -146,7 +146,7 @@ def load_model(filepath, custom_objects=None):
 
     # instantiate optimizer
     training_config = f.attrs.get('training_config')
-    if training_config is None:
+    if training_config is None or ('classify' in custom_objects and custom_objects['classify']):
         warnings.warn('No training configuration found in save file: '
                       'the model was *not* compiled. Compile it manually.')
         f.close()
@@ -189,18 +189,9 @@ def model_from_config(config, custom_objects=None):
         raise TypeError('`model_fom_config` expects a dictionary, not a list. '
                         'Maybe you meant to use '
                         '`Sequential.from_config(config)`?')
-    if custom_objects and 'layer_class' in custom_objects:
-        # Insert custom layers into globals so they can be accessed by `get_from_module`.
-        for cls_key in custom_objects:
-            globals()[cls_key] = custom_objects[cls_key]
-        layer_class = custom_objects['layer_class']
-        # Remove layer class from custom_objects as it's not needed anymore
-        custom_objects.pop('layer_class', None)
-        return layer_class.from_config(config['config'], custom_objects=custom_objects)
-    # Default Keras behaviour if the layer class parameter is not passed
-    else:
-        from keras.utils.layer_utils import layer_from_config
-        return layer_from_config(config, custom_objects=custom_objects)
+
+    from keras.utils.layer_utils import layer_from_config
+    return layer_from_config(config, custom_objects=custom_objects)
 
 
 def model_from_yaml(yaml_string, custom_objects=None):
