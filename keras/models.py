@@ -195,8 +195,9 @@ def model_from_config(config, custom_objects=None):
         for cls_key in custom_objects:
             globals()[cls_key] = custom_objects[cls_key]
         layer_class = custom_objects['layer_class']
-        arg_spec = inspect.getfullargspec(layer_class.from_config)
-        return layer_class.from_config(config['config'], custom_objects=getattr(arg_spec.args, 'custom_objects', None))
+        # Remove layer class from custom_objects as it's not needed anymore
+        custom_objects.pop('layer_class', None)
+        return layer_class.from_config(config['config'], custom_objects=custom_objects)
     # Default Keras behaviour if the layer class parameter is not passed
     else:
         from keras.utils.layer_utils import layer_from_config
