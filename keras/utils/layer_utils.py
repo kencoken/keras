@@ -29,8 +29,6 @@ def layer_from_config(config, custom_objects=None):
         layer_class = custom_objects['layer_class']
         # Remove layer class from custom_objects as it's not needed anymore
         custom_objects.pop('layer_class', None)
-        for cls_key in custom_objects:
-            globals()[cls_key] = custom_objects[cls_key]
         return layer_class.from_config(config['config'], custom_objects=custom_objects)
 
     class_name = config['class_name']
