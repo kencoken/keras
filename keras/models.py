@@ -146,7 +146,8 @@ def load_model(filepath, custom_objects=None):
 
     # instantiate optimizer
     training_config = f.attrs.get('training_config')
-    if training_config is None:
+    if training_config is None or ('classify' in custom_objects and custom_objects['classify']):
+        custom_objects.pop('classify', None)
         warnings.warn('No training configuration found in save file: '
                       'the model was *not* compiled. Compile it manually.')
         f.close()
