@@ -106,7 +106,7 @@ def save_model(model, filepath, overwrite=True):
     f.close()
 
 
-def load_model(filepath, custom_objects=None):
+def load_model(filepath, custom_objects=None, include_metrics=True):
     if not custom_objects:
         custom_objects = {}
 
@@ -159,7 +159,7 @@ def load_model(filepath, custom_objects=None):
 
     # recover loss functions and metrics
     loss = deserialize(training_config['loss'])
-    metrics = deserialize(training_config['metrics'])
+    metrics = deserialize(training_config['metrics']) if include_metrics else None
     sample_weight_mode = training_config['sample_weight_mode']
     loss_weights = training_config['loss_weights']
 
