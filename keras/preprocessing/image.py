@@ -491,53 +491,57 @@ class ImageDataGenerator(object):
         img_col_axis = self.col_axis - 1
         img_channel_axis = self.channel_axis - 1
 
-        # use composition of homographies
-        # to generate final transform that needs to be applied
-        if self.rotation_range:
-            theta = np.pi / 180 * np.random.uniform(-self.rotation_range, self.rotation_range)
-        else:
-            theta = 0
-        rotation_matrix = np.array([[np.cos(theta), -np.sin(theta), 0],
-                                    [np.sin(theta), np.cos(theta), 0],
+        transform_matrix_vars = [self.rotation_range, self.height_shift_range, self.width_shift_range,
+                                 self.shear_range, self.zoom_range]
+        if any(transform_matrix_vars):
+            # use composition of homographies
+            # to generate final transform that needs to be applied
+            if self.rotation_range:
+                theta = np.pi / 180 * np.random.uniform(-self.rotation_range, self.rotation_range)
+            else:
+                theta = 0
+            rotation_matrix = np.array([[np.cos(theta), -np.sin(theta), 0],
+                                        [np.sin(theta), np.cos(theta), 0],
+                                        [0, 0, 1]])
+            if self.height_shift_range:
+                tx = np.random.uniform(-self.height_shift_range, self.height_shift_range) * x.shape[img_row_axis]
+            else:
+                tx = 0
+
+            if self.width_shift_range:
+                ty = np.random.uniform(-self.width_shift_range, self.width_shift_range) * x.shape[img_col_axis]
+            else:
+                ty = 0
+
+            translation_matrix = np.array([[1, 0, tx],
+                                           [0, 1, ty],
+                                           [0, 0, 1]])
+            if self.shear_range:
+                shear = np.random.uniform(-self.shear_range, self.shear_range)
+            else:
+                shear = 0
+            shear_matrix = np.array([[1, -np.sin(shear), 0],
+                                     [0, np.cos(shear), 0],
+                                     [0, 0, 1]])
+
+            if self.zoom_range[0] == 1 and self.zoom_range[1] == 1:
+                zx, zy = 1, 1
+            else:
+                zx, zy = np.random.uniform(self.zoom_range[0], self.zoom_range[1], 2)
+            zoom_matrix = np.array([[zx, 0, 0],
+                                    [0, zy, 0],
                                     [0, 0, 1]])
-        if self.height_shift_range:
-            tx = np.random.uniform(-self.height_shift_range, self.height_shift_range) * x.shape[img_row_axis]
-        else:
-            tx = 0
 
-        if self.width_shift_range:
-            ty = np.random.uniform(-self.width_shift_range, self.width_shift_range) * x.shape[img_col_axis]
-        else:
-            ty = 0
+            transform_matrix = np.dot(np.dot(np.dot(rotation_matrix,
+                                                    translation_matrix),
+                                             shear_matrix),
+                                      zoom_matrix)
 
-        translation_matrix = np.array([[1, 0, tx],
-                                       [0, 1, ty],
-                                       [0, 0, 1]])
-        if self.shear_range:
-            shear = np.random.uniform(-self.shear_range, self.shear_range)
-        else:
-            shear = 0
-        shear_matrix = np.array([[1, -np.sin(shear), 0],
-                                 [0, np.cos(shear), 0],
-                                 [0, 0, 1]])
+            h, w = x.shape[img_row_axis], x.shape[img_col_axis]
+            transform_matrix = transform_matrix_offset_center(transform_matrix, h, w)
+            x = apply_transform(x, transform_matrix, img_channel_axis,
+                                fill_mode=self.fill_mode, cval=self.cval)
 
-        if self.zoom_range[0] == 1 and self.zoom_range[1] == 1:
-            zx, zy = 1, 1
-        else:
-            zx, zy = np.random.uniform(self.zoom_range[0], self.zoom_range[1], 2)
-        zoom_matrix = np.array([[zx, 0, 0],
-                                [0, zy, 0],
-                                [0, 0, 1]])
-
-        transform_matrix = np.dot(np.dot(np.dot(rotation_matrix,
-                                                translation_matrix),
-                                         shear_matrix),
-                                  zoom_matrix)
-
-        h, w = x.shape[img_row_axis], x.shape[img_col_axis]
-        transform_matrix = transform_matrix_offset_center(transform_matrix, h, w)
-        x = apply_transform(x, transform_matrix, img_channel_axis,
-                            fill_mode=self.fill_mode, cval=self.cval)
         if self.channel_shift_range != 0:
             x = random_channel_shift(x,
                                      self.channel_shift_range,
