@@ -440,7 +440,7 @@ class GeneratorEnqueuer(object):
                 self.queue = multiprocessing.Queue(maxsize=max_q_size)
                 self._stop_event = multiprocessing.Event()
             else:
-                self.queue = queue.Queue()
+                self.queue = queue.Queue(maxsize=max_q_size)
                 self._stop_event = threading.Event()
 
             for i in range(nb_worker):
